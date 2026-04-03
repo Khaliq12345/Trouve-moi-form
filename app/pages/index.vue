@@ -18,6 +18,8 @@
         <v-card-text>
           <BusinessInfoFields v-model="formData" :rules="rules" />
 
+          <BusinessAddressFields v-model="formData" :rules="rules" />
+
           <v-row>
             <BusinessOpeningHours v-model="formData" />
 
@@ -29,7 +31,6 @@
           <BusinessCategoryFields 
             v-model="formData" 
             :rules="rules" 
-            :predefined-categories="predefinedCategories"
           />
 
           <v-row>
@@ -56,28 +57,29 @@
   </v-container>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import { ref, reactive } from 'vue';
+import type { BusinessFormData, DaySchedule } from '~/types/business';
 
 // Référence pour le contrôle du formulaire
-const formRef = ref(null);
+const formRef = ref<any>(null);
 const isSubmitting = ref(false);
 
 // Liste des jours pour la boucle de l'interface des horaires
 const daysOfWeek = [
   'Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi', 'Samedi', 'Dimanche'
-];
+] as const;
 
-// Dictionnaire de données pour les catégories
-const predefinedCategories = {
-  'Restauration': ['Fast-Food', 'Gastronomique', 'Café', 'Boulangerie'],
-  'Hébergement': ['Hôtel', 'Appartement meublé', 'Maison d\'hôte'],
-  'Services': ['Plomberie', 'Électricité', 'Informatique']
-};
+// Initialisation des horaires au format Directus (open/close/null)
+const hours = daysOfWeek.reduce((acc, day) => {
+  acc[day] = { open: '09:00', close: '18:00' };
+  return acc;
+}, {} as DaySchedule);
 
 // Structure de données conforme à vos besoins Directus
-const formData = reactive({
+const formData = reactive<BusinessFormData>({
   name: '',
+  short_description: '',
   description: '',
   price_range: 1,
   calendar_link: '',
@@ -85,46 +87,44 @@ const formData = reactive({
   whatsapp: '',
   contact_email: '',
   website: '',
-  // Initialisation de l'objet hours pour chaque jour
-  hours: daysOfWeek.reduce((acc, day) => {
-    acc[day] = { closed: false, value: '09:00 - 18:00' };
-    return acc;
-  }, {}),
+  hours: hours as DaySchedule,
   featuredslot: [],
   categories: [],
   sub_categories: [],
   reservation_available: false,
-  menu_url: ''
+  menu_url: '',
+  addresses: ['']
 });
 
 // Règles de validation
 const rules = {
-  required: (v) => !!v || 'Requis',
-  requiredArray: (v) => (v && v.length > 0) || 'Sélectionnez au moins un élément',
-  subCategoryRequired: (v) => {
+  required: (v: string) => !!v || 'Requis',
+  requiredArray: (v: string[]) => (v && v.length > 0) || 'Sélectionnez au moins un élément',
+  subCategoryRequired: (v: string[]) => {
     if (formData.categories.length === 0) return true;
     return (v && v.length > 0) || 'Sous-catégorie obligatoire';
   },
-  email: (v) => !v || /.+@.+\..+/.test(v) || 'Email invalide'
+  email: (v: string) => !v || /.+@.+\..+/.test(v) || 'Email invalide'
 };
 
-// Soumission et log du résultat
+// Soumission vers Directus
+const { createBusiness } = useCreateBusiness();
+
 const submitForm = async () => {
   const { valid } = await formRef.value.validate();
   
   if (valid) {
     isSubmitting.value = true;
     
-    // Préparation du payload final
-    const finalPayload = { ...formData };
-    
-    console.log("Validation réussie. Payload prêt pour le backend :");
-    console.log(JSON.stringify(finalPayload, null, 2));
-    
-    // Simulation du délai réseau
-    setTimeout(() => {
+    try {
+      // Créer le business dans Directus
+      await createBusiness(formData);
+      
+    } catch (error) {
+      // Error handled silently
+    } finally {
       isSubmitting.value = false;
-    }, 800);
+    }
   }
 };
 </script>

@@ -2,14 +2,17 @@
   <v-row>
     <v-col cols="12" md="6">
       <v-select
-        v-model="modelValue.categories"
-        :items="categoryKeys"
+        v-model="selectedCategoryIds"
+        :items="categories"
         label="Catégorie principale"
         variant="outlined"
         rounded="lg"
         color="white"
         multiple
         chips
+        item-title="name"
+        item-value="id"
+        :loading="pendingCategories"
         @update:model-value="handleCategoryChange"
         :rules="[rules.requiredArray]"
       ></v-select>
@@ -25,47 +28,73 @@
         color="white"
         multiple
         chips
-        :disabled="modelValue.categories.length === 0"
+        item-title="name"
+        item-value="id"
+        :disabled="selectedCategoryIds.length === 0 || pendingCategories"
+        :loading="pendingCategories"
         :rules="[rules.subCategoryRequired]"
       ></v-select>
     </v-col>
   </v-row>
 </template>
 
-<script setup>
-import { computed } from 'vue';
+<script setup lang="ts">
+import { computed, ref, watch } from 'vue';
+import type { GroupedCategory, SubCategory } from '~/types/category';
+import type { BusinessFormData } from '~/types/business';
 
-const props = defineProps({
-  modelValue: {
-    type: Object,
-    required: true
-  },
+interface Props {
+  modelValue: BusinessFormData;
   rules: {
-    type: Object,
-    required: true
-  },
-  predefinedCategories: {
-    type: Object,
-    required: true
-  }
+    requiredArray: (v: string[]) => boolean | string;
+    subCategoryRequired: (v: string[]) => boolean | string;
+  };
+}
+
+const props = defineProps<Props>();
+
+// Récupération des catégories et sous-catégories depuis Directus
+const { data: groupedCategories, pending: pendingCategories } = useFetchGroupedCategories();
+
+// Liste des catégories pour le select
+const categories = computed<GroupedCategory[]>(() => groupedCategories.value || []);
+
+// IDs des catégories sélectionnées (stockage interne)
+const selectedCategoryIds = ref<string[]>([]);
+
+// Synchroniser selectedCategoryIds avec modelValue.categories
+watch(() => props.modelValue.categories, (newVal) => {
+  selectedCategoryIds.value = newVal || [];
+}, { immediate: true });
+
+// Mettre à jour modelValue.categories quand selectedCategoryIds change
+watch(selectedCategoryIds, (newVal) => {
+  props.modelValue.categories = newVal;
 });
 
-const emit = defineEmits(['update:modelValue']);
-
-const categoryKeys = Object.keys(props.predefinedCategories);
-
-const availableSubCategories = computed(() => {
-  let options = [];
-  props.modelValue.categories.forEach(cat => {
-    if (props.predefinedCategories[cat]) options.push(...props.predefinedCategories[cat]);
+// Calculer les sous-catégories disponibles basées sur les catégories sélectionnées
+const availableSubCategories = computed<SubCategory[]>(() => {
+  if (!groupedCategories.value || selectedCategoryIds.value.length === 0) {
+    return [];
+  }
+  
+  const subCats: SubCategory[] = [];
+  selectedCategoryIds.value.forEach(catId => {
+    const category = groupedCategories.value?.find(c => c.id === catId);
+    if (category?.sub_categories) {
+      subCats.push(...category.sub_categories);
+    }
   });
-  return options;
+  
+  return subCats;
 });
 
 const handleCategoryChange = () => {
-  const valid = availableSubCategories.value;
-  // Modifier directement le tableau réactif pour préserver la réactivité
-  const newSubCategories = props.modelValue.sub_categories.filter(sub => valid.includes(sub));
+  // Filtrer les sous-catégories pour ne garder que celles des catégories sélectionnées
+  const validSubCatIds = availableSubCategories.value.map(sub => sub.id);
+  const newSubCategories = props.modelValue.sub_categories.filter(subId => 
+    validSubCatIds.includes(subId)
+  );
   props.modelValue.sub_categories = newSubCategories;
 };
 </script>

@@ -9,11 +9,12 @@
   </v-col>
 </template>
 
-<script setup>
-const props = defineProps({
-  modelValue: {
-    type: Object,
-    required: true
-  }
-});
+<script setup lang="ts">
+import type { BusinessFormData } from '~/types/business';
+
+interface Props {
+  modelValue: BusinessFormData;
+}
+
+const props = defineProps<Props>();
 </script>

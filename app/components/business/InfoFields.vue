@@ -12,6 +12,20 @@
       ></v-text-field>
     </v-col>
 
+    <v-col cols="12">
+      <v-text-field
+        v-model="modelValue.short_description"
+        label="Courte description (obligatoire)"
+        variant="outlined"
+        rounded="lg"
+        color="white"
+        clearable
+        :rules="[rules.required]"
+        hint="Une brève description qui apparaîtra dans les résultats de recherche"
+        persistent-hint
+      ></v-text-field>
+    </v-col>
+
     <v-col cols="12" md="6">
       <div class="text-subtitle-2 mb-2 ml-2">Gamme de prix (1 à 4)</div>
       <v-slider
@@ -51,15 +65,15 @@
   </v-row>
 </template>
 
-<script setup>
-const props = defineProps({
-  modelValue: {
-    type: Object,
-    required: true
-  },
+<script setup lang="ts">
+import type { BusinessFormData } from '~/types';
+
+interface Props {
+  modelValue: BusinessFormData;
   rules: {
-    type: Object,
-    required: true
-  }
-});
+    required: (v: string) => boolean | string;
+  };
+}
+
+const props = defineProps<Props>();
 </script>
