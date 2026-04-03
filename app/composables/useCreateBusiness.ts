@@ -110,9 +110,7 @@ export const useCreateBusiness = () => {
             }))
         };
         
-        // Log des données avant envoi
-        console.log('Payload Directus:', JSON.stringify(businessPayload, null, 2));
-        
+
         // Créer le business
         const businessResponse = await $directus.request(
             $createItem('businesses', businessPayload)
