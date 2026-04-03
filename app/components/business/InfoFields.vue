@@ -66,7 +66,7 @@
 </template>
 
 <script setup lang="ts">
-import type { BusinessFormData } from '~/types';
+import type { BusinessFormData } from '~/types/business';
 
 interface Props {
   modelValue: BusinessFormData;

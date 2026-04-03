@@ -79,6 +79,7 @@ const hours = daysOfWeek.reduce((acc, day) => {
 // Structure de données conforme à vos besoins Directus
 const formData = reactive<BusinessFormData>({
   name: '',
+  slug: '',
   short_description: '',
   description: '',
   price_range: 1,
