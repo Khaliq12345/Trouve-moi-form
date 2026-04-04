@@ -4,6 +4,9 @@ import {
   readItem,
   readItems,
   createItem,
+  updateItem,
+  deleteItem,
+  uploadFiles,
   staticToken,
 } from "@directus/sdk";
 
@@ -14,6 +17,6 @@ export default defineNuxtPlugin(() => {
     .with(staticToken(config.public.staticTokenPublic));
 
   return {
-    provide: { directus, readItem, readItems, createItem },
+    provide: { directus, readItem, readItems, createItem, updateItem, deleteItem, uploadFiles },
   };
 });

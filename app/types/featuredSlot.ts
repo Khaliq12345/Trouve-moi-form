@@ -1,9 +1,2 @@
-export interface FeaturedSlot {
-  id: string;
-  user_created?: string;
-  date_created?: string;
-  user_updated?: string | null;
-  date_updated?: string | null;
-  feature: string;
-  slug: string;
-}
+// Ré-exporte FeaturedSlot depuis biz.ts pour éviter les doublons
+export type { FeaturedSlot } from './biz';

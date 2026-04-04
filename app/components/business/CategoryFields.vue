@@ -59,18 +59,28 @@ const { data: groupedCategories, pending: pendingCategories } = useFetchGroupedC
 // Liste des catégories pour le select
 const categories = computed<GroupedCategory[]>(() => groupedCategories.value || []);
 
-// IDs des catégories sélectionnées (stockage interne)
-const selectedCategoryIds = ref<string[]>([]);
+// IDs des catégories sélectionnées (stockage interne) - initialisé à partir des props
+const selectedCategoryIds = ref<string[]>(props.modelValue.categories || []);
 
-// Synchroniser selectedCategoryIds avec modelValue.categories
+// Synchroniser selectedCategoryIds avec modelValue.categories (uniquement côté client)
 watch(() => props.modelValue.categories, (newVal) => {
-  selectedCategoryIds.value = newVal || [];
-}, { immediate: true });
+  const newCategories = newVal || [];
+  // Éviter les mises à jour inutiles
+  if (JSON.stringify(selectedCategoryIds.value) !== JSON.stringify(newCategories)) {
+    selectedCategoryIds.value = newCategories;
+    // Appeler handleCategoryChange pour mettre à jour les sous-catégories disponibles
+    // (nécessaire quand les catégories sont initialisées depuis le parent, ex: page d'édition)
+    handleCategoryChange();
+  }
+}, { deep: true });
 
-// Mettre à jour modelValue.categories quand selectedCategoryIds change
+// Mettre à jour modelValue.categories quand selectedCategoryIds change (avec vérification)
 watch(selectedCategoryIds, (newVal) => {
-  props.modelValue.categories = newVal;
-});
+  const currentCategories = props.modelValue.categories || [];
+  if (JSON.stringify(currentCategories) !== JSON.stringify(newVal)) {
+    props.modelValue.categories = [...newVal];
+  }
+}, { deep: true });
 
 // Calculer les sous-catégories disponibles basées sur les catégories sélectionnées
 const availableSubCategories = computed<SubCategory[]>(() => {

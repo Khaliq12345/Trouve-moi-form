@@ -8,18 +8,17 @@
         </v-col>
         <v-col cols="6" sm="3">
           <v-switch
-            v-model="isClosed[day]"
+            v-model="localHours[day].closed"
             label="Fermé"
             color="error"
             hide-details
             inset
-            @update:model-value="(val) => toggleClosed(day, val)"
           ></v-switch>
         </v-col>
         <v-col cols="12" sm="3">
           <v-text-field
-            v-model="timeValues[day].open"
-            :disabled="isClosed[day]"
+            v-model="localHours[day].value[0]"
+            :disabled="localHours[day].closed"
             label="Ouverture"
             variant="underlined"
             density="compact"
@@ -30,8 +29,8 @@
         </v-col>
         <v-col cols="12" sm="3">
           <v-text-field
-            v-model="timeValues[day].close"
-            :disabled="isClosed[day]"
+            v-model="localHours[day].value[1]"
+            :disabled="localHours[day].closed"
             label="Fermeture"
             variant="underlined"
             density="compact"
@@ -47,58 +46,54 @@
 
 <script setup lang="ts">
 import { reactive, watch } from 'vue';
-import type { BusinessFormData, DaySchedule } from '~/types';
+import type { BusinessFormData, DayScheduleUI } from '~/types/business';
 
 interface Props {
   modelValue: BusinessFormData;
 }
 
 const props = defineProps<Props>();
+const emit = defineEmits<{
+  'update:modelValue': [value: BusinessFormData];
+}>();
 
 const daysOfWeek = [
   'Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi', 'Samedi', 'Dimanche'
 ] as const;
 
-// État local pour le switch "Fermé" (true si open === null)
-const isClosed = reactive<Record<keyof DaySchedule, boolean>>({
-  Lundi: props.modelValue.hours.Lundi.open === null,
-  Mardi: props.modelValue.hours.Mardi.open === null,
-  Mercredi: props.modelValue.hours.Mercredi.open === null,
-  Jeudi: props.modelValue.hours.Jeudi.open === null,
-  Vendredi: props.modelValue.hours.Vendredi.open === null,
-  Samedi: props.modelValue.hours.Samedi.open === null,
-  Dimanche: props.modelValue.hours.Dimanche.open === null,
+// Local copy that we can mutate freely
+const localHours = reactive<DayScheduleUI>({
+  Lundi: { closed: false, value: ['09:00', '18:00'] },
+  Mardi: { closed: false, value: ['09:00', '18:00'] },
+  Mercredi: { closed: false, value: ['09:00', '18:00'] },
+  Jeudi: { closed: false, value: ['09:00', '18:00'] },
+  Vendredi: { closed: false, value: ['09:00', '18:00'] },
+  Samedi: { closed: false, value: ['09:00', '18:00'] },
+  Dimanche: { closed: false, value: ['09:00', '18:00'] },
 });
 
-// Valeurs des champs ouverture/fermeture (fallback sur 09:00/18:00 si null)
-const timeValues = reactive<Record<keyof DaySchedule, { open: string; close: string }>>({
-  Lundi: { open: props.modelValue.hours.Lundi.open ?? '09:00', close: props.modelValue.hours.Lundi.close ?? '18:00' },
-  Mardi: { open: props.modelValue.hours.Mardi.open ?? '09:00', close: props.modelValue.hours.Mardi.close ?? '18:00' },
-  Mercredi: { open: props.modelValue.hours.Mercredi.open ?? '09:00', close: props.modelValue.hours.Mercredi.close ?? '18:00' },
-  Jeudi: { open: props.modelValue.hours.Jeudi.open ?? '09:00', close: props.modelValue.hours.Jeudi.close ?? '18:00' },
-  Vendredi: { open: props.modelValue.hours.Vendredi.open ?? '09:00', close: props.modelValue.hours.Vendredi.close ?? '18:00' },
-  Samedi: { open: props.modelValue.hours.Samedi.open ?? '09:00', close: props.modelValue.hours.Samedi.close ?? '18:00' },
-  Dimanche: { open: props.modelValue.hours.Dimanche.open ?? '09:00', close: props.modelValue.hours.Dimanche.close ?? '18:00' },
-});
-
-// Quand on toggle "Fermé"
-const toggleClosed = (day: keyof DaySchedule, closed: boolean) => {
-  if (closed) {
-    props.modelValue.hours[day].open = null;
-    props.modelValue.hours[day].close = null;
-  } else {
-    props.modelValue.hours[day].open = timeValues[day].open;
-    props.modelValue.hours[day].close = timeValues[day].close;
-  }
-};
-
-// Watchers pour synchroniser les changements des inputs vers le modèle
-watch(timeValues, (newValues) => {
+// Watch props.modelValue.hours and update local copy
+watch(() => props.modelValue.hours, (newHours) => {
+  if (!newHours) return;
   daysOfWeek.forEach((day) => {
-    if (!isClosed[day]) {
-      props.modelValue.hours[day].open = newValues[day].open;
-      props.modelValue.hours[day].close = newValues[day].close;
+    if (newHours[day]) {
+      localHours[day] = {
+        closed: newHours[day].closed ?? false,
+        value: [
+          newHours[day].value?.[0] ?? '09:00',
+          newHours[day].value?.[1] ?? '18:00'
+        ]
+      };
     }
   });
+}, { immediate: true, deep: true });
+
+// Watch local changes and emit updates
+watch(localHours, (newVal) => {
+  const updated = { ...props.modelValue };
+  daysOfWeek.forEach((day) => {
+    updated.hours = { ...updated.hours, [day]: { ...newVal[day] } };
+  });
+  emit('update:modelValue', updated);
 }, { deep: true });
 </script>

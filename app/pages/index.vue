@@ -86,7 +86,6 @@ const formData = reactive<BusinessFormData>({
   calendar_link: '',
   phone: '',
   whatsapp: '',
-  contact_email: '',
   website: '',
   hours: hours as DaySchedule,
   featuredslot: [],
@@ -104,8 +103,7 @@ const rules = {
   subCategoryRequired: (v: string[]) => {
     if (formData.categories.length === 0) return true;
     return (v && v.length > 0) || 'Sous-catégorie obligatoire';
-  },
-  email: (v: string) => !v || /.+@.+\..+/.test(v) || 'Email invalide'
+  }
 };
 
 // Soumission vers Directus

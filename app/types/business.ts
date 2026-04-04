@@ -1,12 +1,18 @@
-export interface BizHours {
-  open: string | null;
-  close: string | null;
+// Type pour le format Directus des horaires (tableau avec objet anglais)
+export interface DirectusHours {
+  monday: { open: string | null; close: string | null };
+  tuesday: { open: string | null; close: string | null };
+  wednesday: { open: string | null; close: string | null };
+  thursday: { open: string | null; close: string | null };
+  friday: { open: string | null; close: string | null };
+  saturday: { open: string | null; close: string | null };
+  sunday: { open: string | null; close: string | null };
 }
 
-// Type pour le format UI des horaires (avec closed et value)
+// Type pour le format UI des horaires (avec closed et value, jours en français)
 export interface HoursUI {
   closed: boolean;
-  value: string;
+  value: [string, string]; // [open, close]
 }
 
 export interface DayScheduleUI {
@@ -17,6 +23,11 @@ export interface DayScheduleUI {
   Vendredi: HoursUI;
   Samedi: HoursUI;
   Dimanche: HoursUI;
+}
+
+export interface BizHours {
+  open: string | null;
+  close: string | null;
 }
 
 export interface DaySchedule {
@@ -38,13 +49,12 @@ export interface BusinessFormData {
   calendar_link: string;
   phone: string;
   whatsapp: string;
-  contact_email: string;
   website: string;
-  hours: DaySchedule;
+  hours: DayScheduleUI; // Format UI avec jours français
   featuredslot: string[];
   categories: string[];
   sub_categories: string[];
   reservation_available: boolean;
   menu_url: string;
-  addresses: string[];
+  addresses: string[]; // Array[str] simplifié
 }
