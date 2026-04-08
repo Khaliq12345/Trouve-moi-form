@@ -1,35 +1,5 @@
 // Composable pour créer un business dans Directus
-import type { BusinessFormData, DaySchedule } from "~/types/business";
-
-interface DirectusHours {
-  monday: { open: string | null; close: string | null };
-  tuesday: { open: string | null; close: string | null };
-  wednesday: { open: string | null; close: string | null };
-  thursday: { open: string | null; close: string | null };
-  friday: { open: string | null; close: string | null };
-  saturday: { open: string | null; close: string | null };
-  sunday: { open: string | null; close: string | null };
-}
-
-const dayMapping: Record<keyof DaySchedule, keyof DirectusHours> = {
-  Lundi: "monday",
-  Mardi: "tuesday",
-  Mercredi: "wednesday",
-  Jeudi: "thursday",
-  Vendredi: "friday",
-  Samedi: "saturday",
-  Dimanche: "sunday",
-};
-
-// Mappe les jours français vers anglais pour Directus
-const mapHoursToDirectus = (hours: DaySchedule): DirectusHours => {
-  const result = {} as DirectusHours;
-  (Object.keys(hours) as Array<keyof DaySchedule>).forEach((day) => {
-    const englishDay = dayMapping[day];
-    result[englishDay] = hours[day];
-  });
-  return result;
-};
+import type { BusinessFormData } from "~/types/business";
 
 // Valide que les données essentielles sont présentes
 const validateBusinessData = (
