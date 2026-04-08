@@ -50,11 +50,11 @@ export interface BusinessFormData {
   phone: string;
   whatsapp: string;
   website: string;
-  hours: DayScheduleUI; // Format UI avec jours français
+  hours: DaySchedule | null | undefined; // Format UI avec jours français
   featuredslot: string[];
   categories: string[];
   sub_categories: string[];
   reservation_available: boolean;
   menu_url: string;
-  addresses: string[]; // Array[str] simplifié
+  // addresses: string[]; // Array[str] simplifié
 }

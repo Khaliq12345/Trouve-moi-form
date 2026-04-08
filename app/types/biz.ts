@@ -96,7 +96,7 @@ export interface Biz {
   reviews_count: number;
   website?: string;
   is_open: boolean;
-  hours: DaySchedule;
+  hours: [DaySchedule];
   rating: number;
   price_range: number;
   slug: string;
@@ -104,25 +104,23 @@ export interface Biz {
   categories: Array<{ id: string | number; name: string; slug?: string }>;
   featured_slots: FeaturedSlot[];
   subcategories?: SubCategory[];
-  locations?: BizLocation[];
   // Champs additionnels
   reservation_available?: boolean;
   calendar_link?: string;
   short_description?: string;
   menu_url?: string;
-  addresses?: string[];
 }
 
 export interface BizMetaItem {
   id: string;
   title: string;
   description: string;
-  type: 'menu' | 'service' | 'portfolio' | 'vibes' | 'video' | string;
+  type: "menu" | "service" | "portfolio" | "vibes" | "video" | string;
   price?: number | string | null;
   biz_id: string;
   biz_name?: string;
   biz_slug?: string;
-  media_type: 'image' | 'video' | string;
+  media_type: "image" | "video" | string;
   link: string[];
 }
 

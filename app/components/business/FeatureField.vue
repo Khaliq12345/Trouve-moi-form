@@ -19,7 +19,7 @@
 </template>
 
 <script setup lang="ts">
-import type { BusinessFormData } from '~/types/business';
+import type { BusinessFormData } from "~/types/business";
 
 interface Props {
   modelValue: BusinessFormData;
@@ -29,4 +29,5 @@ const props = defineProps<Props>();
 
 // Récupération des featured slots depuis Directus
 const { data: featuredSlots, pending } = useFeaturedSlots();
+console.log(featuredSlots.value);
 </script>
