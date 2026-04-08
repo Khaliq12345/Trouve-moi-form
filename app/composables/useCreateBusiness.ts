@@ -1,35 +1,5 @@
 // Composable pour créer un business dans Directus
-import type { BusinessFormData, DaySchedule } from "~/types/business";
-
-interface DirectusHours {
-  monday: { open: string | null; close: string | null };
-  tuesday: { open: string | null; close: string | null };
-  wednesday: { open: string | null; close: string | null };
-  thursday: { open: string | null; close: string | null };
-  friday: { open: string | null; close: string | null };
-  saturday: { open: string | null; close: string | null };
-  sunday: { open: string | null; close: string | null };
-}
-
-const dayMapping: Record<keyof DaySchedule, keyof DirectusHours> = {
-  Lundi: "monday",
-  Mardi: "tuesday",
-  Mercredi: "wednesday",
-  Jeudi: "thursday",
-  Vendredi: "friday",
-  Samedi: "saturday",
-  Dimanche: "sunday",
-};
-
-// Mappe les jours français vers anglais pour Directus
-const mapHoursToDirectus = (hours: DaySchedule): DirectusHours => {
-  const result = {} as DirectusHours;
-  (Object.keys(hours) as Array<keyof DaySchedule>).forEach((day) => {
-    const englishDay = dayMapping[day];
-    result[englishDay] = hours[day];
-  });
-  return result;
-};
+import type { BusinessFormData } from "~/types/business";
 
 // Valide que les données essentielles sont présentes
 const validateBusinessData = (
@@ -37,15 +7,9 @@ const validateBusinessData = (
 ): { valid: boolean; errors: string[] } => {
   const errors: string[] = [];
 
-  // Validation des adresses
-  if (!formData.addresses || formData.addresses.length === 0) {
-    errors.push("Au moins une adresse est requise");
-  } else {
-    formData.addresses.forEach((addr, idx) => {
-      if (!addr?.trim()) {
-        errors.push(`Adresse ${idx + 1}: l'adresse est vide`);
-      }
-    });
+  // Validation de la localisation
+  if (!formData.locations?.trim()) {
+    errors.push("La localisation est requise");
   }
 
   // Validation des horaires
@@ -75,9 +39,6 @@ export const useCreateBusiness = () => {
       throw new Error(`Données invalides: ${validation.errors.join(", ")}`);
     }
 
-    // Mapper les hours vers le format Directus (jours en anglais)
-    const directusHours = mapHoursToDirectus(formData.hours);
-
     // Générer le slug à partir du name
     const slug = formData.name
       .toLowerCase()
@@ -99,7 +60,10 @@ export const useCreateBusiness = () => {
       website: formData.website,
       reservation_available: formData.reservation_available,
       hours: [formData.hours],
-      // addresses: formData.addresses.filter(a => a?.trim()),
+      audio_direction: formData.audio,
+      locations: formData.locations,
+      menu_url: formData.menu_url,
+      text_directions: formData.textDirections,
       // Mapping des relations M2M
       categories: formData.categories.map((id) => ({
         categories_new_id: id,

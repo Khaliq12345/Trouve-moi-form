@@ -56,5 +56,7 @@ export interface BusinessFormData {
   sub_categories: string[];
   reservation_available: boolean;
   menu_url: string;
-  // addresses: string[]; // Array[str] simplifié
+  locations: string;
+  textDirections: { step: number; description: string }[];
+  audio?: string | null;
 }

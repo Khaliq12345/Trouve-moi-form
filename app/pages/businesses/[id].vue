@@ -86,6 +86,9 @@
             <v-row>
               <BusinessReservationToggle v-model="formData" />
             </v-row>
+
+            <BusinessTextDirections v-model="formData" />
+            <BusinessAudioDirections v-model="formData" />
           </template>
         </v-card-text>
 
@@ -131,7 +134,7 @@ const {
   pending,
   error,
 } = useFetchSingleBusiness(businessId);
-console.log("ANOTHER SINGLE ", businessData.value);
+
 
 const formRef = ref<any>(null);
 const isSubmitting = ref(false);
@@ -171,40 +174,51 @@ const rules = {
 };
 
 // Initialisation des données du formulaire
-const formData: Ref<BusinessFormData | null> = computed(() => {
-  const source = businessData.value;
-  if (!source) return null;
+const formData = ref<BusinessFormData | null>(null);
 
-  return {
-    name: source.name || "",
-    slug: source.slug || "",
-    short_description: (source as any).short_description || "",
-    description: source.description || "",
-    price_range: source.price_range || 1,
-    phone: source.phone || "",
-    whatsapp: source.whatsapp || "",
-    website: source.website || "",
-    calendar_link: (source as any).calendar_link || "",
-    reservation_available: (source as any).reservation_available || false,
-    menu_url: (source as any).menu_url || "",
+watch(
+  businessData,
+  (source) => {
+    if (!source) {
+      formData.value = null;
+      return;
+    }
 
-    // Handle hours
-    hours: source.hours?.length > 0 ? source.hours[0] : null,
+    formData.value = {
+      name: source.name || "",
+      slug: source.slug || "",
+      short_description: (source as any).short_description || "",
+      description: source.description || "",
+      price_range: source.price_range || 1,
+      phone: source.phone || "",
+      whatsapp: source.whatsapp || "",
+      website: source.website || "",
+      calendar_link: (source as any).calendar_link || "",
+      reservation_available: (source as any).reservation_available || false,
+      menu_url: (source as any).menu_url || "",
+      locations: source.locations || "",
+      textDirections: (source as any).text_directions || [],
+      audio: (source as any).audio_direction || null,
 
-    // Relations - Mapping to ID strings
-    categories: (source.categories || []).map((c: any) =>
-      typeof c === "object" && c !== null ? String(c.id) : String(c)
-    ),
+      // Handle hours
+      hours: source.hours?.length > 0 ? source.hours[0] : source.hours,
 
-    sub_categories: (source.subcategories || []).map((s: any) =>
-      typeof s === "object" && s !== null ? String(s.id) : String(s)
-    ),
+      // Relations - Mapping to ID strings
+      categories: (source.categories || []).map((c: any) =>
+        typeof c === "object" && c !== null ? String(c.id) : String(c)
+      ),
 
-    featuredslot: (source.featured_slots || []).map((f: any) =>
-      typeof f === "object" && f !== null ? String(f.id) : String(f)
-    ),
-  };
-});
+      sub_categories: (source.subcategories || []).map((s: any) =>
+        typeof s === "object" && s !== null ? String(s.id) : String(s)
+      ),
+
+      featuredslot: (source.featured_slots || []).map((f: any) =>
+        typeof f === "object" && f !== null ? String(f.id) : String(f)
+      ),
+    };
+  },
+  { immediate: true }
+);
 
 // Gestionnaire de soumission
 const submitForm = async () => {

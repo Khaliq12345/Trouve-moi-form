@@ -109,6 +109,7 @@ export interface Biz {
   calendar_link?: string;
   short_description?: string;
   menu_url?: string;
+  locations?: string;
 }
 
 export interface BizMetaItem {

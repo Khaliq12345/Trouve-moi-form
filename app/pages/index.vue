@@ -39,6 +39,9 @@
           <v-row>
             <BusinessReservationToggle v-model="formData" />
           </v-row>
+
+          <BusinessTextDirections v-model="formData" />
+          <BusinessAudioDirections v-model="formData" />
         </v-card-text>
 
         <v-card-actions class="px-4 pb-4 mt-6">
@@ -85,7 +88,9 @@ const formData = reactive<BusinessFormData>({
   sub_categories: [],
   reservation_available: false,
   menu_url: "",
-  addresses: [""],
+  locations: "",
+  textDirections: [],
+  audio: null,
 });
 
 // Règles de validation
