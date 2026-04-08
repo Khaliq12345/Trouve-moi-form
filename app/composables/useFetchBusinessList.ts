@@ -1,46 +1,72 @@
 import type { Biz } from "~/types/biz";
 
+const PAGE_SIZE = 10;
+
 export const useFetchBusinessList = () => {
   const { $directus, $readItems } = useNuxtApp();
 
   const searchQuery = ref("");
+  const businesses = ref<Biz[]>([]);
+  const pending = ref(false);
+  const error = ref<any>(null);
+  const page = ref(1);
+  const hasMore = ref(false);
 
-  const {
-    data: businesses,
-    error,
-    pending,
-    refresh,
-  } = useAsyncData<Biz[]>("businesses-list", async (): Promise<Biz[]> => {
-    const params: Record<string, any> = {};
+  const fetchPage = async (p: number, reset = false) => {
+    pending.value = true;
+    error.value = null;
 
-    if (searchQuery.value.trim()) {
-      params.search = searchQuery.value.trim();
+    try {
+      const params: Record<string, any> = {
+        limit: PAGE_SIZE,
+        page: p,
+      };
+
+      if (searchQuery.value.trim()) {
+        params.search = searchQuery.value.trim();
+      }
+
+      const items = ((await $directus.request($readItems("businesses", params))) || []) as Biz[];
+
+      businesses.value = reset ? items : [...businesses.value, ...items];
+      hasMore.value = items.length === PAGE_SIZE;
+    } catch (e) {
+      error.value = e;
+    } finally {
+      pending.value = false;
     }
-
-    const results = await $directus.request($readItems("businesses", params));
-
-    if (!results?.length) return [];
-
-    return results as Biz[];
-  });
-
-  // Déclenche la recherche manuellement (bouton)
-  const search = async () => {
-    await refresh();
   };
 
-  // Efface la recherche et recharge tout
+  // Chargement initial
+  onMounted(() => fetchPage(1, true));
+
+  // Recherche : repart de la page 1 et écrase les résultats
+  const search = async () => {
+    page.value = 1;
+    await fetchPage(1, true);
+  };
+
+  // Effacement du filtre : repart de zéro
   const clearSearch = async () => {
     searchQuery.value = "";
-    await refresh();
+    page.value = 1;
+    await fetchPage(1, true);
+  };
+
+  // Charge la page suivante et accumule
+  const loadMore = async () => {
+    page.value++;
+    await fetchPage(page.value, false);
   };
 
   return {
     businesses,
-    error,
     pending,
+    error,
     searchQuery,
+    hasMore,
     search,
     clearSearch,
+    loadMore,
   };
 };

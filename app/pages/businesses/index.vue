@@ -163,11 +163,36 @@
         </v-card>
       </v-col>
     </v-row>
+
+    <!-- Voir plus -->
+    <v-row v-if="hasMore && !pending" class="mt-4">
+      <v-col cols="12" class="text-center">
+        <v-btn
+          color="white"
+          variant="outlined"
+          rounded="pill"
+          size="large"
+          :loading="pending"
+          prepend-icon="mdi-chevron-down"
+          class="px-8 font-weight-bold"
+          @click="loadMore"
+        >
+          Voir plus
+        </v-btn>
+      </v-col>
+    </v-row>
+
+    <!-- Spinner discret pendant le chargement de la page suivante -->
+    <v-row v-if="pending && businesses?.length" class="mt-4">
+      <v-col cols="12" class="text-center">
+        <v-progress-circular indeterminate color="grey" size="32" />
+      </v-col>
+    </v-row>
   </v-container>
 </template>
 
 <script setup lang="ts">
-const { businesses, pending, error, searchQuery, search, clearSearch } =
+const { businesses, pending, error, searchQuery, hasMore, search, clearSearch, loadMore } =
   useFetchBusinessList();
 
 const navigateToEdit = (id: string) => {
