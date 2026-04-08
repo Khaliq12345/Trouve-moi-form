@@ -1,7 +1,14 @@
 <template>
   <v-col cols="12">
-    <div class="text-h6 mb-4 text-grey-lighten-1">Horaires d'ouverture</div>
-    <v-sheet border rounded="lg" color="transparent" class="pa-4">
+    <div class="text-h6 mb-4 text-grey-lighten-1">
+      Horaires d'ouverture
+    </div>
+    <v-sheet
+      border
+      rounded="lg"
+      color="transparent"
+      class="pa-4"
+    >
       <v-row
         v-for="(day, index) in daysOfWeek"
         :key="index"
@@ -15,27 +22,29 @@
         <!-- Open time -->
         <v-col cols="12" sm="3">
           <v-text-field
-            v-model="modelValue.hours[day].open"
+            :model-value="localHours[day]?.open"
+            @update:model-value="updateHour(day, 'open', $event)"
             label="Ouverture"
             variant="underlined"
             density="compact"
             color="white"
             hide-details
             placeholder="09:00"
-          ></v-text-field>
+          />
         </v-col>
 
-        <!-- CLose time -->
+        <!-- Close time -->
         <v-col cols="12" sm="3">
           <v-text-field
-            v-model="modelValue.hours[day].close"
+            :model-value="localHours[day]?.close"
+            @update:model-value="updateHour(day, 'close', $event)"
             label="Fermeture"
             variant="underlined"
             density="compact"
             color="white"
             hide-details
             placeholder="18:00"
-          ></v-text-field>
+          />
         </v-col>
       </v-row>
     </v-sheet>
@@ -51,22 +60,21 @@ interface Props {
 
 const props = defineProps<Props>();
 
-// Liste des jours pour la boucle de l'interface des horaires
 const daysOfWeek = [
-  "Lundi",
-  "Mardi",
-  "Mercredi",
-  "Jeudi",
-  "Vendredi",
-  "Samedi",
-  "Dimanche",
+  "Lundi", "Mardi", "Mercredi", "Jeudi", "Vendredi", "Samedi", "Dimanche",
 ] as const;
 
-// Initialisation des horaires au format Directus (open/close/null)
-if (Object.keys(props.modelValue.hours).length === 0) {
-  props.modelValue.hours = daysOfWeek.reduce((acc, day) => {
-    acc[day] = { open: "09:00", close: "18:00" };
+// Copie locale initialisée avec les valeurs par défaut si absentes
+const localHours = reactive<DaySchedule>(
+  daysOfWeek.reduce((acc, day) => {
+    acc[day] = props.modelValue.hours?.[day] ?? { open: "09:00", close: "18:00" };
     return acc;
-  }, {} as DaySchedule);
+  }, {} as DaySchedule)
+);
+
+function updateHour(day: keyof DaySchedule, field: "open" | "close", value: string) {
+  localHours[day] = { ...localHours[day], [field]: value };
+
+  props.modelValue.hours = { ...localHours };
 }
 </script>

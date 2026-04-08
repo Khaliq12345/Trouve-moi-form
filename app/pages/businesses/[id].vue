@@ -131,7 +131,7 @@ const {
   pending,
   error,
 } = useFetchSingleBusiness(businessId);
-console.log("ANOTHER SINGLE ", businessData.value);
+
 
 const formRef = ref<any>(null);
 const isSubmitting = ref(false);
@@ -187,6 +187,7 @@ const formData: Ref<BusinessFormData | null> = computed(() => {
     calendar_link: (source as any).calendar_link || "",
     reservation_available: (source as any).reservation_available || false,
     menu_url: (source as any).menu_url || "",
+    locations: source.locations|| "",
 
     // Handle hours
     hours: source.hours?.length > 0 ? source.hours[0] : null,
