@@ -60,11 +60,13 @@ interface Props {
 
 const props = defineProps<Props>();
 
+console.log("hours: ", props.modelValue.hours)
+
 const daysOfWeek = [
   "Lundi", "Mardi", "Mercredi", "Jeudi", "Vendredi", "Samedi", "Dimanche",
 ] as const;
 
-// Copie locale initialisée avec les valeurs par défaut si absentes
+
 const localHours = reactive<DaySchedule>(
   daysOfWeek.reduce((acc, day) => {
     acc[day] = props.modelValue.hours?.[day] ?? { open: "09:00", close: "18:00" };
@@ -75,6 +77,6 @@ const localHours = reactive<DaySchedule>(
 function updateHour(day: keyof DaySchedule, field: "open" | "close", value: string) {
   localHours[day] = { ...localHours[day], [field]: value };
 
-  props.modelValue.hours = { ...localHours };
+  props.modelValue.hours = localHours;
 }
 </script>

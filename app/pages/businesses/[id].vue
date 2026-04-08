@@ -201,7 +201,7 @@ watch(
       audio: (source as any).audio_direction || null,
 
       // Handle hours
-      hours: source.hours?.length > 0 ? source.hours[0] : null,
+      hours: source.hours?.length > 0 ? source.hours[0] : source.hours,
 
       // Relations - Mapping to ID strings
       categories: (source.categories || []).map((c: any) =>
