@@ -58,4 +58,5 @@ export interface BusinessFormData {
   menu_url: string;
   locations: string;
   textDirections: { step: number; description: string }[];
+  audio?: string | null;
 }

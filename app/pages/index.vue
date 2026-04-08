@@ -90,6 +90,7 @@ const formData = reactive<BusinessFormData>({
   menu_url: "",
   locations: "",
   textDirections: [],
+  audio: null,
 });
 
 // Règles de validation

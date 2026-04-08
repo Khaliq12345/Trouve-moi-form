@@ -16,7 +16,10 @@ export const useUpdateBusiness = (id: string, formData: BusinessFormData) => {
     website: formData.website,
     reservation_available: formData.reservation_available,
     hours: formData.hours,
-    // addresses: formData.addresses.filter((a) => a?.trim()),
+    audio: formData.audio,
+    locations: formData.locations,
+    menu_url: formData.menu_url,
+    text_directions: formData.textDirections,
     categories: formData.categories.map((id) => ({
       categories_new_id: id,
     })),

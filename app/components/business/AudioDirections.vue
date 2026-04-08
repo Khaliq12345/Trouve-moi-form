@@ -17,12 +17,24 @@
         @click:clear="onClear"
       ></v-file-input>
 
-      <audio
-        v-if="previewUrl"
-        :src="previewUrl"
-        controls
-        class="w-100 mt-2"
-      ></audio>
+      <div v-if="previewUrl" class="mt-2 w-100 d-flex flex-column">
+        <audio
+          :src="previewUrl"
+          controls
+          class="w-100"
+        ></audio>
+        <v-btn
+          v-if="modelValue.audio"
+          color="error"
+          variant="text"
+          size="small"
+          prepend-icon="mdi-delete"
+          @click="onClear"
+          class="mt-2 align-self-start"
+        >
+          Retirer l'audio
+        </v-btn>
+      </div>
 
       <v-alert
         v-if="uploadError"
@@ -38,6 +50,7 @@
 </template>
 
 <script setup lang="ts">
+import { ref, computed } from "vue";
 import type { BusinessFormData } from "~/types/business";
 
 interface Props {
@@ -49,25 +62,26 @@ const emit = defineEmits<{
   "update:modelValue": [value: BusinessFormData];
 }>();
 
-const { uploadAudio } = useDirectusAudio(); // ton composable
+const { $directus, $uploadFiles } = useNuxtApp();
+const config = useRuntimeConfig();
 
 const isUploading = ref(false);
 const uploadError = ref<string | null>(null);
 
-const fileList = computed(() =>
-  props.modelValue.audioFile ? [props.modelValue.audioFile] : [],
-);
+// Historique si on ajoute depuis l'ordinateur
+const fileList = ref<File[]>([]);
 
-const previewUrl = ref<string | null>(
-  props.modelValue.audioFile
-    ? URL.createObjectURL(props.modelValue.audioFile)
-    : null,
-);
+const previewUrl = computed(() => {
+  if (props.modelValue.audio) {
+    // Si c'est un ID Directus, on construit l'URL de l'asset
+    return `${config.public.directusUrl}/assets/${props.modelValue.audio}`;
+  }
+  return null;
+});
 
 const onFileChange = async (files: File | File[]) => {
   const file = Array.isArray(files) ? files[0] : files;
 
-  if (previewUrl.value) URL.revokeObjectURL(previewUrl.value);
   uploadError.value = null;
 
   if (!file) {
@@ -75,15 +89,21 @@ const onFileChange = async (files: File | File[]) => {
     return;
   }
 
-  // On stocke le File brut dans le formData immédiatement
-  previewUrl.value = URL.createObjectURL(file);
-  emit("update:modelValue", { ...props.modelValue, audioFile: file });
+  fileList.value = [file];
 
-  // Upload vers Directus
+  // Upload immédiat vers Directus
   try {
     isUploading.value = true;
-    await uploadAudio(file);
+    
+    const fileFormData = new FormData();
+    fileFormData.append("file", file);
+
+    const result = await $directus.request($uploadFiles(fileFormData));
+    const fileId = Array.isArray(result) ? result[0].id : result.id;
+
+    emit("update:modelValue", { ...props.modelValue, audio: fileId });
   } catch (e) {
+    console.error("Erreur upload audio:", e);
     uploadError.value = "Échec de l'envoi du fichier audio.";
   } finally {
     isUploading.value = false;
@@ -91,13 +111,8 @@ const onFileChange = async (files: File | File[]) => {
 };
 
 const onClear = () => {
-  if (previewUrl.value) URL.revokeObjectURL(previewUrl.value);
-  previewUrl.value = null;
+  fileList.value = [];
   uploadError.value = null;
-  emit("update:modelValue", { ...props.modelValue, audioFile: null });
+  emit("update:modelValue", { ...props.modelValue, audio: null });
 };
-
-onUnmounted(() => {
-  if (previewUrl.value) URL.revokeObjectURL(previewUrl.value);
-});
 </script>
